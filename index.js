@@ -25,36 +25,37 @@ app.get("/api/hello", function (req, res) {
 });
 
 // Timestamp API endpoint
-app.get("/api/:date?", function (req, res) {
-  const { date } = req.params;
+// Timestamp API endpoint
+app.get("/api/:date?", (req, res) => {
+  let dateString = req.params.date;
 
-  let parsedDate;
+  let date;
 
-  // If no date provided, return current date
-  if (!date) {
-    parsedDate = new Date();
-  } else if (/^\d+$/.test(date)) {
-    // If it's all digits → treat as Unix timestamp
-    // Check for seconds (10 digits) vs milliseconds (13 digits)
-    parsedDate = date.length === 10
-      ? new Date(Number(date) * 1000)
-      : new Date(Number(date));
+  // If no date is provided → use current time
+  if (!dateString) {
+    date = new Date();
   } else {
-    // Otherwise, parse as date string
-    parsedDate = new Date(date);
+    // Check if input is a number (timestamp)
+    if (/^\d+$/.test(dateString)) {
+      // Important: FCC expects Unix timestamps in milliseconds, not seconds
+      date = new Date(parseInt(dateString));
+    } else {
+      date = new Date(dateString);
+    }
   }
 
-  // Invalid date handling
-  if (parsedDate.toString() === "Invalid Date") {
+  // Handle invalid date
+  if (date.toString() === "Invalid Date") {
     return res.json({ error: "Invalid Date" });
   }
 
-  // Valid date → return JSON
+  // Return valid response
   res.json({
-    unix: parsedDate.getTime(),
-    utc: parsedDate.toUTCString(),
+    unix: date.getTime(),
+    utc: date.toUTCString(),
   });
 });
+
 
 
 
