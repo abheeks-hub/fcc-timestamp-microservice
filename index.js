@@ -24,41 +24,38 @@ app.get("/api/hello", function (req, res) {
   res.json({greeting: 'hello API'});
 });
 
+// Timestamp API endpoint
 app.get("/api/:date?", function (req, res) {
-  const { date_string } = req.params;
+  const { date } = req.params;
 
-  // Case 1: no date string → use current date
-  if (!date_string) {
-    const now = new Date();
-    return res.json({ unix: now.getTime(), utc: now.toUTCString() });
+  let parsedDate;
+
+  // If no date provided, return current date
+  if (!date) {
+    parsedDate = new Date();
+  } else if (/^\d+$/.test(date)) {
+    // If it's all digits → treat as Unix timestamp
+    // Check for seconds (10 digits) vs milliseconds (13 digits)
+    parsedDate = date.length === 10
+      ? new Date(Number(date) * 1000)
+      : new Date(Number(date));
+  } else {
+    // Otherwise, parse as date string
+    parsedDate = new Date(date);
   }
 
-  const numeric_only = /^\d+$/;
-  let date;
-
-  // Case 2: numeric input (unix timestamp)
-  if (numeric_only.test(date_string)) {
-    if (date_string.length === 10) {
-      // seconds → ms
-      date = new Date(Number(date_string) * 1000);
-    } else {
-      // assume ms
-      date = new Date(Number(date_string));
-    }
-  } 
-  // Case 3: date string input
-  else {
-    date = new Date(date_string);
-  }
-
-  // Invalid date check
-  if (date.toString() === "Invalid Date") {
+  // Invalid date handling
+  if (parsedDate.toString() === "Invalid Date") {
     return res.json({ error: "Invalid Date" });
   }
 
-  // Valid response
-  res.json({ unix: date.getTime(), utc: date.toUTCString() });
+  // Valid date → return JSON
+  res.json({
+    unix: parsedDate.getTime(),
+    utc: parsedDate.toUTCString(),
+  });
 });
+
 
 
 
