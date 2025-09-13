@@ -24,6 +24,42 @@ app.get("/api/hello", function (req, res) {
   res.json({greeting: 'hello API'});
 });
 
+app.get("/api/timestamp/:date_string?", function (req, res) {
+  const { date_string } = req.params;
+
+  // Case 1: no date string → use current date
+  if (!date_string) {
+    const now = new Date();
+    return res.json({ unix: now.getTime(), utc: now.toUTCString() });
+  }
+
+  const numeric_only = /^\d+$/;
+  let date;
+
+  // Case 2: numeric input (unix timestamp)
+  if (numeric_only.test(date_string)) {
+    if (date_string.length === 10) {
+      // seconds → ms
+      date = new Date(Number(date_string) * 1000);
+    } else {
+      // assume ms
+      date = new Date(Number(date_string));
+    }
+  } 
+  // Case 3: date string input
+  else {
+    date = new Date(date_string);
+  }
+
+  // Invalid date check
+  if (date.toString() === "Invalid Date") {
+    return res.json({ error: "Invalid Date" });
+  }
+
+  // Valid response
+  res.json({ unix: date.getTime(), utc: date.toUTCString() });
+});
+
 
 
 // Listen on port set in environment variable or default to 3000
